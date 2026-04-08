@@ -54,6 +54,7 @@ export const useColumnMenuDrag = ({
 }: UseColumnMenuDragArgs): UseColumnMenuDragResult => {
     const [draggingColumnKey, setDraggingColumnKey] = React.useState<string | null>(null);
     const [dropBeforeColumnKey, setDropBeforeColumnKey] = React.useState<string | null>(null);
+    const draggingColumnKeyRef = React.useRef<string | null>(null);
 
     const effectiveColumnSettings = React.useMemo(
         () => mergeColumnSettings(columnSettings, columnOptions, visibleColumns),
@@ -77,6 +78,8 @@ export const useColumnMenuDrag = ({
     }, [effectiveColumnSettings]);
 
     const handleColumnDragStart = React.useCallback((key: string, event: React.DragEvent<HTMLElement>) => {
+        draggingColumnKeyRef.current = key;
+
         // Delay state updates to the next frame to allow the browser to capture 
         // the correct drag preview image before React re-renders with the "dragging" state
         requestAnimationFrame(() => {
@@ -117,14 +120,16 @@ export const useColumnMenuDrag = ({
 
     const handleColumnDrop = React.useCallback((key: string, event: React.DragEvent<HTMLElement>) => {
         event.preventDefault();
-        const sourceKey = draggingColumnKey || event.dataTransfer?.getData('text/plain');
+        const sourceKey = draggingColumnKeyRef.current || draggingColumnKey || event.dataTransfer?.getData('text/plain');
         if (!sourceKey) return;
         reorderColumnByDrag(sourceKey, key);
+        draggingColumnKeyRef.current = null;
         setDraggingColumnKey(null);
         setDropBeforeColumnKey(null);
     }, [draggingColumnKey, reorderColumnByDrag]);
 
     const clearColumnDragState = React.useCallback(() => {
+        draggingColumnKeyRef.current = null;
         setDraggingColumnKey(null);
         setDropBeforeColumnKey(null);
     }, []);
