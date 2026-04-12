@@ -614,6 +614,48 @@ describe('UiSidebar', () => {
         });
     });
 
+    it('selects the row when clicking empty space in the subject column', async () => {
+        useUIStore.setState({ visibleColumns: ['subject'], columnSettings: buildColumnSettingsFromVisibleKeys(getColumnDefinitions(), ['subject']) });
+
+        useTaskStore.setState({
+            viewport: {
+                startDate: 0,
+                scrollX: 0,
+                scrollY: 0,
+                scale: 1,
+                width: 800,
+                height: 600,
+                rowHeight: 32
+            },
+            groupByProject: false
+        });
+
+        const task: Task = {
+            id: '322',
+            subject: 'Selection target',
+            startDate: 0,
+            dueDate: 1,
+            ratioDone: 0,
+            statusId: 1,
+            lockVersion: 0,
+            editable: true,
+            rowIndex: 0,
+            hasChildren: false
+        };
+
+        useTaskStore.getState().setTasks([task]);
+
+        render(<UiSidebar />);
+
+        fireEvent.click(screen.getByTestId('cell-322-subject'));
+
+        await waitFor(() => {
+            expect(useTaskStore.getState().selectedTaskId).toBe('322');
+        });
+        expect(useUIStore.getState().issueDialogUrl).toBeNull();
+        expect(screen.getByTestId('task-row-322')).toHaveClass('is-selected');
+    });
+
     it('renders notification column for unscheduled tasks when enabled in visibleColumns', () => {
         useUIStore.setState({ visibleColumns: ['notification', 'subject'], columnSettings: buildColumnSettingsFromVisibleKeys(getColumnDefinitions(), ['notification', 'subject']) });
 

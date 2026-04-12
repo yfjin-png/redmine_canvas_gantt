@@ -410,15 +410,16 @@ export const UiSidebar: React.FC = () => {
                                         useUIStore.getState().openIssueDialog(buildRedmineUrl(`/issues/${t.id}`));
                                     }}
                                     style={{
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
                                         overflow: 'hidden',
                                         textOverflow: 'ellipsis',
                                         color: isSelected ? '#1a73e8' : '#3c4043',
                                         textDecoration: 'none',
                                         whiteSpace: 'nowrap',
-                                        flex: 1,
                                         background: 'none',
                                         border: 'none',
-                                        padding: '0 8px',
+                                        padding: 0,
                                         font: 'inherit',
                                         cursor: 'pointer',
                                         textAlign: 'left'
