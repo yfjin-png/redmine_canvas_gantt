@@ -138,6 +138,22 @@ RSpec.describe RedmineCanvasGantt::QueryStateResolver do
     expect(result[:warnings]).to include('Ignored unsupported field tracker_id')
   end
 
+  it 'splits comma and pipe separated project ids from url params' do
+    params = ActionController::Parameters.new(project_ids: ['9|10', '11,12', '12'])
+
+    resolver = described_class.new(
+      project: project,
+      params: params,
+      current_user: current_user,
+      issue_scope: issue_scope,
+      issue_includes: issue_includes
+    )
+
+    result = resolver.resolve(project_ids: [1, 2])
+
+    expect(result[:initial_state][:selected_project_ids]).to eq(%w[9 10 11 12])
+  end
+
   it 'preserves unassigned assignee selections from saved queries' do
     query = instance_double(
       IssueQuery,

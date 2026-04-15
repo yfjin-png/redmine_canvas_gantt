@@ -28,6 +28,8 @@ import {
 import { COLUMN_CATALOG } from './sidebar/sidebarColumnCatalog';
 import { ColumnMenuItem } from './sidebar/ColumnMenuItem';
 import { useColumnMenuDrag } from './sidebar/useColumnMenuDrag';
+import { useSavedQueriesLoader } from './gantt/useSavedQueriesLoader';
+import { useToolbarShortcuts } from './gantt/useToolbarShortcuts';
 
 interface GanttToolbarProps {
     zoomLevel: ZoomLevel;
@@ -129,7 +131,6 @@ export const GanttToolbar: React.FC<GanttToolbarProps> = ({ zoomLevel, onZoomCha
     const selectAllStatusesRef = React.useRef<HTMLInputElement>(null);
     const completedStatusesRef = React.useRef<HTMLInputElement>(null);
     const incompleteStatusesRef = React.useRef<HTMLInputElement>(null);
-    const handledSavedQueriesReloadTokenRef = React.useRef(0);
     const showQueryMenu = isMenuOpen('query');
     const showFilterMenu = isMenuOpen('filter');
     const showColumnMenu = isMenuOpen('column');
@@ -144,16 +145,20 @@ export const GanttToolbar: React.FC<GanttToolbarProps> = ({ zoomLevel, onZoomCha
     const showBaselineSaveMenu = isMenuOpen('baselineSave');
     const displayedActiveQueryId = pendingSavedQueryId ?? activeQueryId;
 
-    React.useEffect(() => {
-        if (!showFilterMenu) return;
+    useToolbarShortcuts({
+        closeMenu,
+        filterInputRef,
+        openMenuByKey,
+        setFilterText,
+        showFilterMenu
+    });
 
-        const requestId = window.requestAnimationFrame(() => {
-            filterInputRef.current?.focus();
-            filterInputRef.current?.select();
-        });
-
-        return () => window.cancelAnimationFrame(requestId);
-    }, [showFilterMenu]);
+    useSavedQueriesLoader({
+        loadSavedQueries,
+        savedQueriesReloadToken,
+        savedQueriesStatus,
+        showQueryMenu
+    });
 
     React.useEffect(() => {
         if (!showRelationSettingsMenu) return;
@@ -162,52 +167,6 @@ export const GanttToolbar: React.FC<GanttToolbarProps> = ({ zoomLevel, onZoomCha
         setDraftAutoApplyDefaultRelation(autoApplyDefaultRelation);
         setDraftAutoScheduleMoveMode(autoScheduleMoveMode);
     }, [autoApplyDefaultRelation, autoCalculateDelay, autoScheduleMoveMode, defaultRelationType, showRelationSettingsMenu]);
-
-    React.useEffect(() => {
-        if (showQueryMenu && savedQueriesStatus === 'idle') {
-            void loadSavedQueries();
-        }
-    }, [loadSavedQueries, savedQueriesStatus, showQueryMenu]);
-
-    React.useEffect(() => {
-        if (savedQueriesReloadToken <= 0) return;
-        if (handledSavedQueriesReloadTokenRef.current >= savedQueriesReloadToken) return;
-
-        handledSavedQueriesReloadTokenRef.current = savedQueriesReloadToken;
-        void loadSavedQueries(true);
-    }, [loadSavedQueries, savedQueriesReloadToken]);
-
-    React.useEffect(() => {
-        if (pendingSavedQueryId === null) return;
-        // The clearing is handled in the async applySavedQuery handler for manual clicks.
-        // This effect can stay as a fallback for external changes if needed,
-        // but for now let's just keep it empty or remove it.
-    }, [activeQueryId, pendingSavedQueryId]);
-
-    React.useEffect(() => {
-        const handleGlobalKeyDown = (event: KeyboardEvent) => {
-            if (event.defaultPrevented) return;
-
-            const key = event.key.toLowerCase();
-
-            if (event.ctrlKey && !event.altKey && !event.metaKey && key === 'f') {
-                event.preventDefault();
-                event.stopPropagation();
-                openMenuByKey('filter');
-                return;
-            }
-
-            if (key === 'escape' && showFilterMenu) {
-                event.preventDefault();
-                event.stopPropagation();
-                setFilterText('');
-                closeMenu('filter');
-            }
-        };
-
-        window.addEventListener('keydown', handleGlobalKeyDown, true);
-        return () => window.removeEventListener('keydown', handleGlobalKeyDown, true);
-    }, [closeMenu, openMenuByKey, showFilterMenu, setFilterText]);
 
     const handleSaveRelationSettings = () => {
         setDefaultRelationType(draftRelationType);
