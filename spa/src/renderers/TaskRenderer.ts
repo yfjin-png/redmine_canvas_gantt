@@ -448,7 +448,7 @@ export class TaskRenderer {
         if (!Number.isFinite(x)) return;
 
         const centerY = Math.floor(y + rowHeight / 2);
-        const diamondSize = 12; // Visible size
+        const diamondSize = 16; // Visible size
 
         ctx.save();
 
