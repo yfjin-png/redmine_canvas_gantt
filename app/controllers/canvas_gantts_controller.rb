@@ -334,6 +334,8 @@ class CanvasGanttsController < ApplicationController
     @i18n = I18N_LABELS.transform_values { |label_key| canvas_gantt_l(label_key, default: label_key) }
     @settings = plugin_settings
     @non_working_week_days = Array(Setting.non_working_week_days).map(&:to_i).uniq.sort
+    @language = current_language.to_s
+    @date_format = Setting.date_format.presence || '%Y-%m-%d'
   end
 
   # GET /projects/:project_id/canvas_gantt/data.json

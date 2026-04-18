@@ -21,6 +21,7 @@ import { getTaskNotification } from './sidebar/sidebarNotifications';
 import { parseTrackerIconMap, resolveTrackerIconKind } from './sidebar/trackerIconUtils';
 import { TrackerIcon } from './sidebar/trackerIcon';
 import { designTokens, fontFamilies } from '../styles/designTokens';
+import { formatDate } from '../utils/dateUtils';
 const NOTIFICATION_COLUMN_KEY = 'notification';
 
 type CanvasGanttSettings = InlineEditSettings & {
@@ -503,7 +504,7 @@ export const UiSidebar: React.FC = () => {
             title: tr('field_start_date'),
             width: columnWidths['startDate'] ?? 90,
             render: (t: Task) => renderEditableCell(t, 'startDate', (
-                <span style={{ color: sidebarMutedText }}>{(t.startDate !== undefined && Number.isFinite(t.startDate)) ? new Date(t.startDate).toLocaleDateString() : '-'}</span>
+                <span style={{ color: designTokens.textMuted }}>{formatDate(t.startDate)}</span>
             ))
         },
         {
@@ -511,7 +512,7 @@ export const UiSidebar: React.FC = () => {
             title: tr('field_due_date'),
             width: columnWidths['dueDate'] ?? 90,
             render: (t: Task) => renderEditableCell(t, 'dueDate', (
-                <span style={{ color: sidebarMutedText }}>{(t.dueDate !== undefined && Number.isFinite(t.dueDate)) ? new Date(t.dueDate).toLocaleDateString() : '-'}</span>
+                <span style={{ color: designTokens.textMuted }}>{formatDate(t.dueDate)}</span>
             ))
         },
         {

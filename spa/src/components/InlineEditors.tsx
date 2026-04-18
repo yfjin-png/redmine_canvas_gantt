@@ -1,8 +1,11 @@
 import React from 'react';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 import { useUIStore } from '../stores/UIStore';
 import type { CustomFieldMeta } from '../types/editMeta';
 import { i18n } from '../utils/i18n';
 import { designTokens } from '../styles/designTokens';
+import { formatDate, getDateFormat, getCurrentLocale } from '../utils/dateUtils';
 
 const DEFAULT_CONTROL_HEIGHT = 24;
 
@@ -323,6 +326,30 @@ export const EstimatedHoursEditor: React.FC<{
     );
 };
 
+const CustomDateInput = React.forwardRef<HTMLDivElement, { value: string; onClick?: () => void; controlHeight: number }>(
+    ({ value, onClick, controlHeight }, ref) => (
+        <div
+            ref={ref}
+            onClick={onClick}
+            style={{
+                color: designTokens.textMuted,
+                padding: 0,
+                fontSize: 13,
+                lineHeight: `${Math.max(controlHeight - 2, 18)}px`,
+                width: '100%',
+                backgroundColor: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center'
+            }}
+        >
+            {value ? formatDate(new Date(value)) : '-'}
+        </div>
+    )
+);
+CustomDateInput.displayName = 'CustomDateInput';
+
 export const DueDateEditor: React.FC<{
     initialValue: string;
     onCommit: (value: string) => Promise<void> | void;
@@ -331,24 +358,22 @@ export const DueDateEditor: React.FC<{
     max?: string;
     controlHeight?: number;
 }> = ({ initialValue, onCommit, onCancel, min, max, controlHeight }) => {
-    const [value, setValue] = React.useState(initialValue);
     const [saving, setSaving] = React.useState(false);
-    const inputRef = React.useRef<HTMLInputElement>(null);
     const resolvedControlHeight = getResolvedControlHeight(controlHeight);
 
-    React.useEffect(() => {
-        const timer = setTimeout(() => {
-            if (inputRef.current && typeof inputRef.current.showPicker === 'function') {
-                try {
-                    inputRef.current.showPicker();
-                } catch {
-                    // ignore
-                }
-            }
-            inputRef.current?.focus();
-        }, 100);
-        return () => clearTimeout(timer);
-    }, []);
+    const parseValue = (val: string) => {
+        if (!val) return null;
+        const d = new Date(val);
+        return isNaN(d.getTime()) ? null : d;
+    };
+
+    const formatDate = (d: Date | null) => {
+        if (!d) return '';
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
 
     const commit = async (next: string) => {
         if (next === initialValue) {
@@ -367,7 +392,9 @@ export const DueDateEditor: React.FC<{
         }
     };
 
-    const displayValue = value ? value.replace(/-/g, '/') : '';
+    const startDate = parseValue(initialValue);
+    const minDate = parseValue(min ?? '');
+    const maxDate = parseValue(max ?? '');
 
     return (
         <div
@@ -379,50 +406,53 @@ export const DueDateEditor: React.FC<{
                 alignItems: 'center'
             }}
         >
-            <span
-                style={{
-                    color: designTokens.textMuted,
-                    padding: '0 8px',
-                    fontSize: 13,
-                    lineHeight: `${Math.max(resolvedControlHeight - 2, 18)}px`
-                }}
-            >
-                {displayValue}
-            </span>
-            <input
-                ref={inputRef}
-                type="date"
-                min={min}
-                max={max}
-                value={value}
-                disabled={saving}
-                onChange={(e) => {
-                    setValue(e.target.value);
-                }}
-                onKeyDown={(e) => {
-                    if (e.key === 'Enter') void commit(value);
-                    if (e.key === 'Escape') onCancel();
-                }}
-                onBlur={() => {
-                    if (value === initialValue) {
-                        onCancel();
-                    } else {
-                        void commit(value);
+            <DatePicker
+                selected={startDate}
+                onChange={(date: Date | null) => {
+                    if (!date) {
+                        void commit('');
+                        return;
                     }
+                    void commit(formatDate(date));
                 }}
-                style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    height: resolvedControlHeight,
-                    opacity: 0,
-                    border: 'none',
-                    margin: 0,
-                    padding: 0,
-                    cursor: 'pointer'
-                }}
-            />
+                onClickOutside={onCancel}
+                minDate={minDate || undefined}
+                maxDate={maxDate || undefined}
+                portalId="root"
+                showMonthDropdown
+                showYearDropdown
+                dropdownMode="select"
+                autoFocus
+                startOpen
+                calendarClassName="minimax-datepicker"
+                disabled={saving}
+                dateFormat={getDateFormat()}
+                locale={getCurrentLocale()}
+                customInput={<CustomDateInput value={initialValue} controlHeight={resolvedControlHeight} />}
+            >
+                <div className="minimax-datepicker-footer">
+                    <button
+                        type="button"
+                        className="minimax-datepicker-btn"
+                        onClick={(e) => {
+                            e.preventDefault();
+                            void commit(formatDate(new Date()));
+                        }}
+                    >
+                        {i18n.t('label_today') || 'Today'}
+                    </button>
+                    <button
+                        type="button"
+                        className="minimax-datepicker-btn minimax-datepicker-btn--clear"
+                        onClick={(e) => {
+                            e.preventDefault();
+                            void commit('');
+                        }}
+                    >
+                        {i18n.t('button_clear') || 'Clear'}
+                    </button>
+                </div>
+            </DatePicker>
         </div>
     );
 };
