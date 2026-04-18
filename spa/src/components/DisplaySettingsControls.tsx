@@ -163,7 +163,7 @@ export const DisplaySettingsControls: React.FC<DisplaySettingsControlsProps> = (
                     }}
                 >
                     <div>
-                        <div style={{ fontWeight: 600, marginBottom: 8 }}>
+                        <div style={{ fontFamily: fontFamilies.mid, fontWeight: 600, marginBottom: 8 }}>
                             {i18n.t('label_display_settings') || 'Display settings'}
                         </div>
                         <div style={{ fontSize: 13, color: designTokens.textMuted, lineHeight: 1.5 }}>

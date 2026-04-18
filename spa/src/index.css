@@ -1,7 +1,9 @@
 :root {
-  --font-ui: "DM Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-ui: "DM Sans", "Noto Sans JP", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-display: "Outfit", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-mid: "Poppins", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-data: "Roboto", "Helvetica Neue", Helvetica, Arial, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-  font-family: var(--font-ui);
   line-height: 1.5;
   font-weight: 400;
 
@@ -37,6 +39,12 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Keep the plugin scoped fonts inside the Redmine mount points. */
+#redmine-canvas-gantt-root,
+#root {
+  font-family: var(--font-ui);
 }
 
 /* Remove global body overrides that break Redmine layout */
@@ -164,4 +172,24 @@
 
 iframe.issue-iframe-loading {
   visibility: hidden;
+}
+
+.rcg-tooltip {
+  font-family: var(--font-ui);
+}
+
+.font-ui {
+  font-family: var(--font-ui);
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-mid {
+  font-family: var(--font-mid);
+}
+
+.font-data {
+  font-family: var(--font-data);
 }

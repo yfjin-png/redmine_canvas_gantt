@@ -154,7 +154,7 @@ export class TaskRenderer {
 
         ctx.save();
 
-        // Use a semi-transparent theme blue for the diamonds
+        // Use a semi-transparent theme green for the diamonds
         ctx.fillStyle = designTokens.projectSummaryFill;
         ctx.strokeStyle = designTokens.projectSummaryStroke;
         ctx.lineWidth = 1;
@@ -303,7 +303,7 @@ export class TaskRenderer {
         }
         ctx.fill();
 
-        // 2. Progress Bar - Green/Brand Blue
+        // 2. Progress Bar - Green theme
         if (progressWidth > 0) {
             ctx.fillStyle = TaskRenderer.DONE_GREEN;
             ctx.beginPath();

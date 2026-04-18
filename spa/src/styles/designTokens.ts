@@ -1,12 +1,15 @@
 export const fontFamilies = {
-    ui: '"DM Sans", "Helvetica Neue", Helvetica, Arial, sans-serif',
+    ui: '"DM Sans", "Noto Sans JP", "Helvetica Neue", Helvetica, Arial, sans-serif',
+    display: '"Outfit", "Helvetica Neue", Helvetica, Arial, sans-serif',
+    mid: '"Poppins", "Helvetica Neue", Helvetica, Arial, sans-serif',
+    data: '"Roboto", "Helvetica Neue", Helvetica, Arial, sans-serif',
     mono: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace'
 } as const;
 
 export const canvasFonts = {
     body: `500 12px ${fontFamilies.ui}`,
-    bodyStrong: `600 10px ${fontFamilies.ui}`,
-    header: `500 12px ${fontFamilies.ui}`
+    bodyStrong: `600 10px ${fontFamilies.data}`,
+    header: `500 12px ${fontFamilies.data}`
 } as const;
 
 export const designTokens = {
@@ -56,8 +59,8 @@ export const designTokens = {
     errorBg: '#fdecea',
     errorBorder: '#f5c6cb',
     errorFg: '#b71c1c',
-    taskDone: '#1456f0',
-    taskPlanned: 'rgba(20, 86, 240, 0.12)',
+    taskDone: '#4ab34fff',
+    taskPlanned: 'rgba(125, 132, 125, 0.28)',
     taskDelayed: '#ea4335',
     taskDelayedStroke: '#d93025',
     dependency: '#94a3b8',
@@ -72,12 +75,12 @@ export const designTokens = {
     baselineStroke: 'rgba(69, 81, 94, 0.48)',
     baselineMarkerFill: 'rgba(234, 94, 193, 0.95)',
     baselineMarkerStroke: '#ffffff',
-    projectSummaryFill: 'rgba(20, 86, 240, 0.26)',
-    projectSummaryStroke: '#1456f0',
+    projectSummaryFill: 'rgba(46, 125, 50, 0.22)',
+    projectSummaryStroke: '#2e7d32',
     projectSummaryLine: 'rgba(69, 81, 94, 0.4)',
-    versionFill: '#3b82f6',
-    versionStroke: '#1456f0',
-    versionProgress: '#60a5fa',
+    versionFill: '#43a047',
+    versionStroke: '#2e7d32',
+    versionProgress: '#66bb6a',
     statusNewBg: '#f5f5f5',
     statusNewText: '#616161',
     statusNewBar: '#bdbdbd',
