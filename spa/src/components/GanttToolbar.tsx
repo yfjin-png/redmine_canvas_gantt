@@ -440,13 +440,12 @@ export const GanttToolbar: React.FC<GanttToolbarProps> = ({ zoomLevel, onZoomCha
         }));
     }, [allTasks]);
 
-    const projectOptions = projectFilterLoading ? [] : filterOptions.projects;
     const assigneeOptions = filterOptions.assignees.length > 0 ? filterOptions.assignees : fallbackAssignees;
     const projectScopeOptions = filterOptions.projects.length > 0 ? filterOptions.projects : fallbackProjects;
 
     const projects = React.useMemo(() => (
-        [...projectOptions].sort((a, b) => a.name.localeCompare(b.name))
-    ), [projectOptions]);
+        [...(projectFilterLoading ? [] : filterOptions.projects)].sort((a, b) => a.name.localeCompare(b.name))
+    ), [filterOptions.projects, projectFilterLoading]);
 
     const scopedProjectIds = React.useMemo(() => (
         new Set(selectedProjectIds.length > 0 ? selectedProjectIds : projectScopeOptions.map((project) => project.id))

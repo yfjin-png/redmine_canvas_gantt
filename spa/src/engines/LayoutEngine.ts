@@ -71,7 +71,7 @@ export class LayoutEngine {
 
         // Calculate task bar height based on rowHeight.
         // For leaf tasks, use 60% of rowHeight. For parent tasks, use 40% (TaskRenderer will halve this to 20%).
-        const heightRatio = task.hasChildren ? 0.4 : 0.45;
+        const heightRatio = task.hasChildren ? 0.4 : 0.6;
         const height = Math.max(2, Math.round(viewport.rowHeight * heightRatio));
         const yOffset = Math.round((viewport.rowHeight - height) / 2);
 

@@ -1,4 +1,4 @@
-import { format as dateFnsFormat } from 'date-fns';
+import { format as dateFnsFormat, type Locale } from 'date-fns';
 import {
     ja, enUS, fr, de, es, zhCN, zhTW, ko, ru, ptBR, it, nl,
     pl, pt, sv, tr, da, fi, nb, hu, cs, sk, uk
@@ -47,7 +47,7 @@ export function convertStrftimeToDateFns(rubyFormat: string): string {
         result = result.replace(regex, () => {
             const idx = placeholders.length;
             placeholders.push(replacement);
-            return `\x00${idx}\x00`;
+            return `__DATE_FNS_TOKEN_${idx}__`;
         });
     });
 
@@ -55,7 +55,7 @@ export function convertStrftimeToDateFns(rubyFormat: string): string {
     result = result.replace(/%[a-zA-Z]/g, '');
 
     // プレースホルダーを戻しながら、リテラル部分をエスケープしてつなぐ
-    const parts = result.split(/\x00(\d+)\x00/);
+    const parts = result.split(/__DATE_FNS_TOKEN_(\d+)__/);
     let formatted = '';
     parts.forEach((part, i) => {
         if (i % 2 === 1) {
@@ -79,7 +79,7 @@ export function convertStrftimeToDateFns(rubyFormat: string): string {
  */
 export function getCurrentLocale() {
     const lang = (getGlobal().language || 'en').toLowerCase();
-    const localeMap: Record<string, any> = {
+    const localeMap: Record<string, Locale> = {
         'en': enUS,
         'ja': ja,
         'fr': fr,
@@ -112,7 +112,7 @@ export function getCurrentLocale() {
  * 現在のRedmine設定に基づいた日付フォーマット文字列（date-fns形式）を取得する
  */
 export function getDateFormat(): string {
-    let rubyFormat = getGlobal().dateFormat || '%Y-%m-%d';
+    const rubyFormat = getGlobal().dateFormat || '%Y-%m-%d';
     return convertStrftimeToDateFns(rubyFormat);
 }
 
@@ -141,7 +141,7 @@ export function getYearMonthFormat(): string {
     if (global.yearMonthFormat) {
         return convertStrftimeToDateFns(global.yearMonthFormat);
     }
-    let rubyFormat = global.dateFormat || '%Y-%m-%d';
+    const rubyFormat = global.dateFormat || '%Y-%m-%d';
     // 日トークンとその周囲のリテラル区切り文字を除去
     const yearMonth = rubyFormat
         .replace(/%-d|%d|%e/g, '')
