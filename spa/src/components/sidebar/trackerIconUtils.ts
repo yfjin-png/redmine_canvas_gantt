@@ -1,15 +1,14 @@
-export type TrackerIconKind = 'bug' | 'feature' | 'support' | 'task';
+export type TrackerIconKind = 'todo' | 'defect' | 'ticket' | 'document' | 'milestone' | 'link';
 
 export type TrackerIconMap = Partial<Record<number, TrackerIconKind>>;
 
-const DEFAULT_TRACKER_ICON_KIND: TrackerIconKind = 'task';
+const DEFAULT_TRACKER_ICON_KIND: TrackerIconKind = 'ticket';
 
-const TRACKER_ICON_KIND_SET = new Set<TrackerIconKind>(['bug', 'feature', 'support', 'task']);
+const TRACKER_ICON_KIND_SET = new Set<TrackerIconKind>(['todo', 'defect', 'ticket', 'document', 'milestone', 'link']);
 
-const TRACKER_NAME_KEYWORDS: Record<Exclude<TrackerIconKind, 'task'>, string[]> = {
-    bug: ['bug', '不具合', '障害'],
-    feature: ['feature', '機能', '要望'],
-    support: ['support', 'サポート', '問い合わせ']
+const TRACKER_NAME_KEYWORDS: Record<'defect' | 'todo', string[]> = {
+    defect: ['bug', 'defect', '不具合', '障害', '欠陥'],
+    todo: ['task', 'todo', 'タスク', '作業', 'ToDo']
 };
 
 export const normalizeTrackerIconKind = (value: unknown): TrackerIconKind | null => {
@@ -45,8 +44,8 @@ export const parseTrackerIconMap = (value: unknown): TrackerIconMap => {
     return parseTrackerIconMapObject(value);
 };
 
-const matchesTrackerName = (trackerName: string | undefined, kind: Exclude<TrackerIconKind, 'task'>) => {
-    const lowerName = trackerName?.toLowerCase() ?? '';
+const matchesTrackerName = (trackerName: string | undefined, kind: keyof typeof TRACKER_NAME_KEYWORDS) => {
+    const lowerName = trackerName?.trim().toLowerCase() ?? '';
     return TRACKER_NAME_KEYWORDS[kind].some((keyword) => lowerName.includes(keyword.toLowerCase()));
 };
 
@@ -57,12 +56,17 @@ export const resolveTrackerIconKind = (
 ): TrackerIconKind => {
     if (typeof trackerId === 'number' && Number.isFinite(trackerId)) {
         const mapped = trackerIconMap[trackerId];
-        if (mapped) return mapped;
+        if (mapped) {
+            // Map old categories to new ones if necessary
+            if (mapped === 'bug' as any) return 'defect';
+            if (mapped === 'task' as any) return 'todo';
+            if (mapped === 'feature' as any || mapped === 'support' as any) return 'ticket';
+            return mapped as TrackerIconKind;
+        }
     }
 
-    if (matchesTrackerName(trackerName, 'bug')) return 'bug';
-    if (matchesTrackerName(trackerName, 'feature')) return 'feature';
-    if (matchesTrackerName(trackerName, 'support')) return 'support';
+    if (matchesTrackerName(trackerName, 'defect')) return 'defect';
+    if (matchesTrackerName(trackerName, 'todo')) return 'todo';
 
     return DEFAULT_TRACKER_ICON_KIND;
 };
