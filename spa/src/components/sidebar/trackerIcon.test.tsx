@@ -12,8 +12,16 @@ describe('trackerIcon', () => {
         });
     });
 
+    it('translates legacy map values to modern terminology', () => {
+        expect(parseTrackerIconMap('{"7":"bug","8":"feature","9":"task"}')).toEqual({
+            7: 'defect',
+            8: 'ticket',
+            9: 'todo'
+        });
+    });
+
     it('prefers trackerId mappings over tracker name fallback', () => {
-        expect(resolveTrackerIconKind(7, '機能', { 7: 'bug' as any })).toBe('defect');
+        expect(resolveTrackerIconKind(7, '機能', { 7: 'defect' })).toBe('defect');
     });
 
     it('falls back to tracker name keywords and then ticket', () => {

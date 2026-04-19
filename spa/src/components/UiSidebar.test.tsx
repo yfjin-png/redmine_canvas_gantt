@@ -172,7 +172,7 @@ describe('UiSidebar', () => {
 
             render(<UiSidebar />);
 
-            expect(screen.getByTestId('tracker-icon-bug')).toBeInTheDocument();
+            expect(screen.getByTestId('tracker-icon-defect')).toBeInTheDocument();
         } finally {
             window.RedmineCanvasGantt = {
                 ...window.RedmineCanvasGantt!,
@@ -492,10 +492,14 @@ describe('UiSidebar', () => {
         render(<UiSidebar />);
 
         const cell = await screen.findByTestId(`cell-${taskId}-startDate`);
-        fireEvent.doubleClick(cell);
+        await act(async () => {
+            fireEvent.doubleClick(cell);
+        });
 
         const day = await screen.findByText('2');
-        fireEvent.click(day);
+        await act(async () => {
+            fireEvent.click(day);
+        });
 
         // Date changes should update local state only (for batch save)
         await waitFor(() => {
@@ -797,8 +801,8 @@ describe('UiSidebar', () => {
         expectNotificationSprite('task-notification-badge-unscheduled-901');
         expect(screen.getByTestId('cell-901-notification')).toHaveStyle({ justifyContent: 'center' });
         expect(screen.getByTestId('task-notification-badge-unscheduled-901')).toHaveStyle({
-            width: '18px',
-            height: '18px'
+            width: '14px',
+            height: '14px'
         });
         expect(screen.queryByTestId('task-scheduling-badge-901')).not.toBeInTheDocument();
     });

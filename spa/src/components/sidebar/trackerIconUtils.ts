@@ -13,7 +13,13 @@ const TRACKER_NAME_KEYWORDS: Record<'defect' | 'todo', string[]> = {
 
 export const normalizeTrackerIconKind = (value: unknown): TrackerIconKind | null => {
     if (typeof value !== 'string') return null;
-    const normalized = value.trim().toLowerCase();
+    let normalized = value.trim().toLowerCase();
+    
+    // Map legacy aliases to new vocabulary
+    if (normalized === 'bug') normalized = 'defect';
+    if (normalized === 'task') normalized = 'todo';
+    if (normalized === 'feature' || normalized === 'support') normalized = 'ticket';
+    
     return TRACKER_ICON_KIND_SET.has(normalized as TrackerIconKind) ? (normalized as TrackerIconKind) : null;
 };
 
@@ -57,11 +63,7 @@ export const resolveTrackerIconKind = (
     if (typeof trackerId === 'number' && Number.isFinite(trackerId)) {
         const mapped = trackerIconMap[trackerId];
         if (mapped) {
-            // Map old categories to new ones if necessary
-            if (mapped === 'bug' as any) return 'defect';
-            if (mapped === 'task' as any) return 'todo';
-            if (mapped === 'feature' as any || mapped === 'support' as any) return 'ticket';
-            return mapped as TrackerIconKind;
+            return mapped;
         }
     }
 

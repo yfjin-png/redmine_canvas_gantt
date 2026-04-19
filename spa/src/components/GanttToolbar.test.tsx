@@ -1130,7 +1130,7 @@ describe('GanttToolbar shortcuts', () => {
         expect(useUIStore.getState().visibleColumns).not.toContain('category');
     });
 
-    it('toggles the task name column when clicking its row label', () => {
+    it('does not toggle the pinned task name column when clicking its row label', () => {
         const { columnSettings } = setVisibleColumnsForTest(['id', 'subject', 'status']);
         useUIStore.setState({ visibleColumns: ['id', 'subject', 'status'], columnSettings });
 
@@ -1152,12 +1152,12 @@ describe('GanttToolbar shortcuts', () => {
         fireEvent.click(screen.getByTitle('Columns'));
         fireEvent.click(screen.getByText('Task Name'));
 
-        expect(screen.getByLabelText('Task Name')).not.toBeDisabled();
-        expect(useUIStore.getState().columnSettings.find((column) => column.key === 'subject')?.visible).toBe(false);
-        expect(useUIStore.getState().visibleColumns).not.toContain('subject');
+        expect(screen.getByLabelText('Task Name')).toBeDisabled();
+        expect(useUIStore.getState().columnSettings.find((column) => column.key === 'subject')?.visible).toBe(true);
+        expect(useUIStore.getState().visibleColumns).toContain('subject');
     });
 
-    it('toggles the task name column from keyboard interaction', () => {
+    it('does not toggle the pinned task name column from keyboard interaction', () => {
         const { columnSettings } = setVisibleColumnsForTest(['id', 'subject', 'status']);
         useUIStore.setState({ visibleColumns: ['id', 'subject', 'status'], columnSettings });
 
@@ -1182,8 +1182,8 @@ describe('GanttToolbar shortcuts', () => {
 
         fireEvent.keyDown(taskNameRow!, { key: 'Enter' });
 
-        expect(useUIStore.getState().columnSettings.find((column) => column.key === 'subject')?.visible).toBe(false);
-        expect(useUIStore.getState().visibleColumns).not.toContain('subject');
+        expect(useUIStore.getState().columnSettings.find((column) => column.key === 'subject')?.visible).toBe(true);
+        expect(useUIStore.getState().visibleColumns).toContain('subject');
     });
 
     it('drags category column to a new position', () => {

@@ -956,7 +956,7 @@ export const GanttToolbar: React.FC<GanttToolbarProps> = ({ zoomLevel, onZoomCha
                                         draggable={true}
                                         isDragging={draggingColumnKey === option.key}
                                         isDropBefore={dropBeforeColumnKey === option.key}
-                                        isPinned={false}
+                                        isPinned={option.key === 'subject'}
                                         onToggle={toggleColumnVisibility}
                                         onDragStart={handleColumnDragStart}
                                         onDragOver={handleColumnDragOver}
