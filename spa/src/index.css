@@ -319,3 +319,27 @@ iframe.issue-iframe-loading {
   font-family: var(--font-data);
 }
 
+/* Hover emphasis for sidebar rows */
+.task-subject-cell {
+  transition: background-color 0.1s;
+}
+
+.rcg-tracker-icon {
+  opacity: 0.85;
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.task-subject {
+  transition: font-weight 0.2s, color 0.1s;
+}
+
+.task-subject-cell:hover .rcg-tracker-icon {
+  opacity: 1;
+  transform: scale(1.08);
+}
+
+.task-subject-cell:hover .task-subject {
+  font-weight: 500 !important;
+  color: var(--col-text00) !important;
+}
+

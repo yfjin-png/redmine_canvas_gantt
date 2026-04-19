@@ -10,7 +10,7 @@ describe('sidebarNotifications helpers', () => {
 
         expect(notification).toEqual({
             iconName: 'rcg-icon-notification-unscheduled',
-            color: '#5f6368',
+            color: '#64748b',
             tooltip: 'Unscheduled',
             testIdSuffix: 'unscheduled'
         });
@@ -24,7 +24,7 @@ describe('sidebarNotifications helpers', () => {
 
         expect(notification).toEqual({
             iconName: 'rcg-icon-notification-critical',
-            color: '#b42318',
+            color: '#dc2626',
             tooltip: 'Critical path task. Total slack: 2 working day(s).',
             testIdSuffix: 'critical'
         });

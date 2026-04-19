@@ -18,7 +18,7 @@ const getSchedulingNotification = (schedulingState?: SchedulingStateInfo): TaskN
     if (schedulingState.state === 'invalid') {
         return {
             iconName: 'rcg-icon-notification-warning',
-            color: designTokens.notificationError,
+            color: designTokens.notificationLink, // red for invalid
             tooltip: schedulingState.message,
             testIdSuffix: 'invalid'
         };
@@ -36,7 +36,7 @@ const getSchedulingNotification = (schedulingState?: SchedulingStateInfo): TaskN
     if (schedulingState.state === 'conflicted') {
         return {
             iconName: 'rcg-icon-notification-warning',
-            color: designTokens.notificationBlocked,
+            color: designTokens.notificationWarning,
             tooltip: schedulingState.message,
             testIdSuffix: 'conflicted'
         };
@@ -44,7 +44,7 @@ const getSchedulingNotification = (schedulingState?: SchedulingStateInfo): TaskN
 
     return {
         iconName: 'rcg-icon-notification-unscheduled',
-        color: designTokens.notificationMuted,
+        color: designTokens.notificationInfo,
         tooltip: schedulingState.message,
         testIdSuffix: 'unscheduled'
     };
@@ -56,7 +56,7 @@ const getCriticalPathNotification = (criticalPathMetrics?: CriticalPathNotificat
     const days = criticalPathMetrics.totalSlackDays;
     return {
         iconName: 'rcg-icon-notification-critical',
-        color: designTokens.notificationCritical,
+        color: designTokens.notificationLink,
         tooltip: i18n.t('label_critical_path_total_slack', { days }) || `Critical path task. Total slack: ${days} working day(s).`,
         testIdSuffix: 'critical'
     };

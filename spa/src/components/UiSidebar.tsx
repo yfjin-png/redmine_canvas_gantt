@@ -282,12 +282,12 @@ export const UiSidebar: React.FC = () => {
                             display: 'inline-flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            width: 18,
-                            height: 18,
+                            width: 14,
+                            height: 14,
                             color: notification.color
                         }}
                     >
-                        <SvgIcon name={notification.iconName} size={18} />
+                        <SvgIcon name={notification.iconName} size={14} />
                     </span>
                 );
             }
@@ -304,7 +304,8 @@ export const UiSidebar: React.FC = () => {
                         fontWeight: t.hasChildren ? 500 : 400,
                         height: '100%',
                         width: '100%',
-                        position: 'relative'
+                        position: 'relative',
+                        gap: sidebarGapMd
                     }}
                     className="task-subject-cell"
                 >
@@ -391,7 +392,7 @@ export const UiSidebar: React.FC = () => {
                                     </div>
                                 </div>
 
-                                <div style={{ marginLeft: sidebarPaddingX, display: 'flex', alignItems: 'center', gap: sidebarGapMd, flexShrink: 0 }}>
+                                <div style={{ marginLeft: sidebarPaddingX, display: 'flex', alignItems: 'center', flexShrink: 0 }}>
                                     <TrackerIcon kind={resolveTrackerIconKind(t.trackerId, t.trackerName, trackerIconMap)} />
                                 </div>
                                 <a
@@ -901,7 +902,7 @@ export const UiSidebar: React.FC = () => {
                                     }}>
                                         <ChevronIcon expanded={expanded} />
                                     </div>
-                                    <div style={{ marginRight: sidebarPaddingX, display: 'flex', alignItems: 'center', color: designTokens.trackerFeatureStroke }}>
+                                    <div style={{ marginRight: sidebarPaddingX, display: 'flex', alignItems: 'center', color: designTokens.trackerMilestoneStroke }}>
                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                             <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
                                             <line x1="4" y1="22" x2="4" y2="15" />
@@ -936,17 +937,17 @@ export const UiSidebar: React.FC = () => {
                                     scrollToTask(task.id);
                                 }}
                                 style={{
-                                        position: 'absolute',
-                                        top: top,
-                                        left: 0,
-                                        height: viewport.rowHeight,
-                                        width: '100%',
-                                        display: 'flex',
-                                        borderBottom: sidebarRowBorder,
-                                        backgroundColor: isDropTarget ? sidebarDropTargetBg : (isSelected ? sidebarSelectedRowBg : 'transparent'),
-                                        boxShadow: isDropTarget ? `inset 0 0 0 1px ${sidebarDropTargetBorder}` : 'none',
-                                        cursor: 'pointer',
-                                         fontSize: `${sidebarFontSize}px`,
+                                    position: 'absolute',
+                                    top: top,
+                                    left: 0,
+                                    height: viewport.rowHeight,
+                                    width: '100%',
+                                    display: 'flex',
+                                    borderBottom: sidebarRowBorder,
+                                    backgroundColor: isDropTarget ? sidebarDropTargetBg : (isSelected ? sidebarSelectedRowBg : 'transparent'),
+                                    boxShadow: isDropTarget ? `inset 0 0 0 1px ${sidebarDropTargetBorder}` : 'none',
+                                    cursor: 'pointer',
+                                    fontSize: `${sidebarFontSize}px`,
                                     color: sidebarSecondaryText,
                                     transition: 'background-color 0.2s, color 0.2s'
                                 }}
@@ -964,7 +965,7 @@ export const UiSidebar: React.FC = () => {
                                 {activeColumns.map((col, idx) => {
                                     const isLastColumn = idx === activeColumns.length - 1;
                                     return (
-                                    <div key={col.key} style={{
+                                        <div key={col.key} style={{
                                         width: isLastColumn ? 0 : col.width,
                                         flex: isLastColumn ? '1 1 0px' : '0 0 auto',
                                         minWidth: isLastColumn ? 0 : undefined,
