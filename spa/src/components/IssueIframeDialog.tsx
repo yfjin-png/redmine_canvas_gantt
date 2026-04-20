@@ -78,6 +78,7 @@ export const IssueIframeDialog: React.FC = () => {
     const [iframeError, setIframeError] = React.useState<string | null>(null);
     const [isSaving, setIsSaving] = React.useState(false);
     const [dialogHeightPx, setDialogHeightPx] = React.useState<number | null>(null);
+    const [isIframeLoaded, setIsIframeLoaded] = React.useState(false);
     const activeDialogUrl = queryDialogUrl || issueDialogUrl;
     const isQueryDialog = Boolean(queryDialogUrl);
 
@@ -169,7 +170,7 @@ export const IssueIframeDialog: React.FC = () => {
             applyLinkTargetBlank(doc);
             bindIframeSizeObservers(doc);
 
-            iframe.classList.remove('issue-iframe-loading');
+            setIsIframeLoaded(true);
 
             const iframeWindow = iframe.contentWindow;
             if (iframeWindow && typeof iframeWindow.addEventListener === 'function') {
@@ -324,6 +325,7 @@ export const IssueIframeDialog: React.FC = () => {
         setIframeError(null);
         setIsSaving(false);
         setDialogHeightPx(null);
+        setIsIframeLoaded(false);
     }, [activeDialogUrl]);
 
     React.useEffect(() => {
@@ -541,7 +543,7 @@ export const IssueIframeDialog: React.FC = () => {
                             border: 'none',
                             flex: 1
                         }}
-                        className="issue-iframe-loading"
+                        className={isIframeLoaded ? undefined : 'issue-iframe-loading'}
                     />
                 </div>
 
