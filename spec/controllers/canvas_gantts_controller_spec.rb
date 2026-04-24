@@ -1080,6 +1080,49 @@ RSpec.describe CanvasGanttsController, type: :controller do
     end
   end
 
+  describe '#ensure_project_move_valid!' do
+    let(:destination_project) { instance_double(Project, id: 3) }
+    let(:tracker) { instance_double(Tracker) }
+    let(:issue_errors) { instance_double(ActiveModel::Errors, add: nil, full_messages: ['invalid']) }
+    let(:issue) do
+      instance_double(
+        Issue,
+        project: destination_project,
+        tracker: tracker,
+        assigned_to_id: nil,
+        assignable_users: [],
+        fixed_version: nil,
+        category: nil,
+        errors: issue_errors
+      )
+    end
+
+    before do
+      allow(controller).to receive(:permitted_task_params).and_return(ActionController::Parameters.new(project_id: '3'))
+      allow(destination_project).to receive(:trackers).and_return([tracker])
+      allow(User.current).to receive(:allowed_to?).with(:add_issues, destination_project).and_return(true)
+    end
+
+    it 'allows move to a project in scope_project_ids even if not in visible_project_ids' do
+      allow(controller).to receive(:current_view_scope).and_return(
+        scope_project_ids: [3, 5],
+        visible_project_ids: [5]
+      )
+
+      expect(controller.send(:ensure_project_move_valid!, issue)).to be(true)
+    end
+
+    it 'forbids move to a project outside scope_project_ids' do
+      allow(controller).to receive(:current_view_scope).and_return(
+        scope_project_ids: [5],
+        visible_project_ids: [5]
+      )
+
+      expect(controller.send(:ensure_project_move_valid!, issue)).to be(false)
+      expect(response).to have_http_status(:forbidden)
+    end
+  end
+
   describe 'CustomFieldExtractor helpers' do
     let(:allowed_custom_field) do
       instance_double(

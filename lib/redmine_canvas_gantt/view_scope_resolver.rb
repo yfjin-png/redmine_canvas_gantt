@@ -11,7 +11,8 @@ module RedmineCanvasGantt
     end
 
     def resolve
-      query_resolution = query_state_resolver.resolve(project_ids: base_project_ids)
+      resolved_scope_project_ids = scope_project_ids
+      query_resolution = query_state_resolver.resolve(project_ids: resolved_scope_project_ids)
       issues = query_resolution[:issues]
       issue_ids = issues.map(&:id).to_set
       visible_project_ids = issues.map(&:project_id).uniq
@@ -19,6 +20,7 @@ module RedmineCanvasGantt
       {
         issues: issues,
         issue_ids: issue_ids,
+        scope_project_ids: resolved_scope_project_ids,
         visible_project_ids: visible_project_ids,
         initial_state: query_resolution[:initial_state],
         warnings: query_resolution[:warnings]
@@ -59,6 +61,21 @@ module RedmineCanvasGantt
             end
 
       ids.map(&:to_i).select(&:positive?).uniq
+    end
+
+    def scope_project_ids
+      explicit_ids = parse_integer_list(@params[:project_ids])
+      return explicit_ids if explicit_ids.present?
+
+      base_project_ids
+    end
+
+    def parse_integer_list(values)
+      Array(values)
+        .flat_map { |value| value.to_s.split(/[|,]/) }
+        .filter_map { |value| Integer(value, exception: false) }
+        .select(&:positive?)
+        .uniq
     end
   end
 end

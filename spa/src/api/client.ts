@@ -160,6 +160,30 @@ const parseEditOption = (value: unknown): EditOption | null => {
     };
 };
 
+const parseRequiredPositiveNumber = (value: unknown, fieldName: string): number => {
+    const parsed = typeof value === 'number' ? value : Number(value);
+    if (!Number.isFinite(parsed) || !Number.isInteger(parsed) || parsed <= 0) {
+        throw new Error(`Invalid response: ${fieldName}`);
+    }
+    return parsed;
+};
+
+const parseRequiredNonNegativeNumber = (value: unknown, fieldName: string): number => {
+    const parsed = typeof value === 'number' ? value : Number(value);
+    if (!Number.isFinite(parsed) || parsed < 0) {
+        throw new Error(`Invalid response: ${fieldName}`);
+    }
+    return parsed;
+};
+
+const parseRequiredDoneRatio = (value: unknown): number => {
+    const parsed = typeof value === 'number' ? value : Number(value);
+    if (!Number.isFinite(parsed) || parsed < 0 || parsed > 100) {
+        throw new Error('Invalid response: done_ratio');
+    }
+    return parsed;
+};
+
 const parseStatus = (value: unknown): TaskStatus | null => {
     const record = asRecord(value);
     if (!record) return null;
@@ -688,18 +712,20 @@ export const apiClient = {
             task: {
                 id: String(taskIdValue),
                 subject: String(subjectValue),
-                assignedToId: typeof assignedToIdValue === 'number' ? assignedToIdValue : null,
-                statusId: typeof statusIdValue === 'number' ? statusIdValue : Number(statusIdValue || 0),
-                doneRatio: typeof doneRatioValue === 'number' ? doneRatioValue : Number(doneRatioValue || 0),
+                assignedToId: assignedToIdValue == null
+                    ? null
+                    : (Number.isFinite(Number(assignedToIdValue)) ? Number(assignedToIdValue) : null),
+                statusId: parseRequiredPositiveNumber(statusIdValue, 'status_id'),
+                doneRatio: parseRequiredDoneRatio(doneRatioValue),
                 dueDate: typeof dueDateValue === 'string' ? dueDateValue : null,
                 startDate: typeof startDateValue === 'string' ? startDateValue : null,
                 priorityId: typeof priorityIdValue === 'number' ? priorityIdValue : Number(priorityIdValue || 0),
                 categoryId: typeof categoryIdValue === 'number' ? categoryIdValue : (categoryIdValue ? Number(categoryIdValue) : null),
                 estimatedHours: typeof estimatedHoursValue === 'number' ? estimatedHoursValue : (estimatedHoursValue ? Number(estimatedHoursValue) : null),
-                projectId: typeof projectIdValue === 'number' ? projectIdValue : Number(projectIdValue || 0),
-                trackerId: typeof trackerIdValue === 'number' ? trackerIdValue : Number(trackerIdValue || 0),
+                projectId: parseRequiredPositiveNumber(projectIdValue, 'project_id'),
+                trackerId: parseRequiredPositiveNumber(trackerIdValue, 'tracker_id'),
                 fixedVersionId: typeof fixedVersionIdValue === 'number' ? fixedVersionIdValue : (fixedVersionIdValue ? Number(fixedVersionIdValue) : null),
-                lockVersion: typeof lockVersionValue === 'number' ? lockVersionValue : Number(lockVersionValue || 0)
+                lockVersion: parseRequiredNonNegativeNumber(lockVersionValue, 'lock_version')
             },
             editable: {
                 subject: editableSubject as boolean,

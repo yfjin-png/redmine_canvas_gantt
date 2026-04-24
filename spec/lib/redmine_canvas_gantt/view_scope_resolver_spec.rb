@@ -28,6 +28,8 @@ RSpec.describe RedmineCanvasGantt::ViewScopeResolver do
     ).resolve
 
     expect(result[:issue_ids]).to eq(Set[10])
+    expect(result[:scope_project_ids]).to eq([1, 2])
+    expect(result[:visible_project_ids]).to eq([1])
   end
 
   it 'uses member project ids when member-project mode is on without explicit project_ids' do
@@ -46,12 +48,13 @@ RSpec.describe RedmineCanvasGantt::ViewScopeResolver do
     ).resolve
 
     expect(result[:issue_ids]).to eq(Set[20])
+    expect(result[:scope_project_ids]).to eq([5, 6])
     expect(result[:visible_project_ids]).to eq([5])
   end
 
   it 'still lets explicit project_ids narrow scope through QueryStateResolver' do
     params = ActionController::Parameters.new(member_projects_only: '1', project_ids: ['6'])
-    allow(query_state_resolver).to receive(:resolve).with(project_ids: [5, 6]).and_return(
+    allow(query_state_resolver).to receive(:resolve).with(project_ids: [6]).and_return(
       issues: [issue_b],
       initial_state: { selected_project_ids: ['6'] },
       warnings: []
@@ -66,5 +69,6 @@ RSpec.describe RedmineCanvasGantt::ViewScopeResolver do
     ).resolve
 
     expect(result[:initial_state][:selected_project_ids]).to eq(['6'])
+    expect(result[:scope_project_ids]).to eq([6])
   end
 end

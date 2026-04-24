@@ -427,7 +427,7 @@ class CanvasGanttsController < ApplicationController
       custom_fields: custom_fields,
       custom_field_values: custom_field_values,
       permissions: @permissions,
-      visible_project_ids: current_view_scope[:visible_project_ids]
+      visible_project_ids: current_view_scope[:scope_project_ids]
     )
   rescue ActiveRecord::RecordNotFound
     render json: { error: canvas_gantt_l(:error_canvas_gantt_task_not_found) }, status: :not_found
@@ -961,7 +961,7 @@ class CanvasGanttsController < ApplicationController
     return true unless destination_project
     return true unless permitted_task_params.key?(:project_id) || permitted_task_params.key?('project_id')
 
-    unless current_view_scope[:visible_project_ids].include?(destination_project.id) &&
+    unless current_view_scope[:scope_project_ids].include?(destination_project.id) &&
            User.current.allowed_to?(:add_issues, destination_project)
       render json: { error: canvas_gantt_l(:error_canvas_gantt_permission_denied) }, status: :forbidden
       return false
