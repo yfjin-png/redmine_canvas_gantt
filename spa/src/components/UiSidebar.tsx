@@ -147,7 +147,8 @@ export const UiSidebar: React.FC = () => {
 
     const editMetaByTaskId = useEditMetaStore((s) => s.metaByTaskId);
     const fetchEditMeta = useEditMetaStore((s) => s.fetchEditMeta);
-    const treeGuideWidth = 18;
+    const treeGuideWidth = 16;
+    const currentTreeGuideWidth = 16;
     const sidebarPaddingX = 8;
     const sidebarGapSm = 4;
     const sidebarGapMd = 6;
@@ -311,6 +312,8 @@ export const UiSidebar: React.FC = () => {
                 >
                     {(() => {
                         const isSelected = t.id === selectedTaskId;
+                        const hasParentGuide = (t.treeLevelGuides ?? []).length > 0;
+                        const branchGuideWidth = currentTreeGuideWidth / 2;
                         return (
                             <>
                                 {/* Tree Lines */}
@@ -330,9 +333,9 @@ export const UiSidebar: React.FC = () => {
                                             )}
                                         </div>
                                     ))}
-                                    <div style={{ width: 16, height: '100%', position: 'relative' }}>
+                                    <div style={{ width: currentTreeGuideWidth, height: '100%', position: 'relative' }}>
                                         {/* Vertical line for the current node */}
-                                        {showHierarchyLines && (
+                                        {showHierarchyLines && hasParentGuide && (
                                             <div style={{
                                                 position: 'absolute',
                                                 left: '50%',
@@ -344,12 +347,12 @@ export const UiSidebar: React.FC = () => {
                                             }} data-testid="task-tree-current-guide" />
                                         )}
                                         {/* Horizontal line for the current node */}
-                                        {showHierarchyLines && (
+                                        {showHierarchyLines && hasParentGuide && (
                                             <div style={{
                                                 position: 'absolute',
                                                 left: '50%',
                                                 top: '50%',
-                                                right: 0,
+                                                width: branchGuideWidth,
                                                 height: 1,
                                                 backgroundColor: designTokens.controlBorder,
                                                 transform: 'translateY(-50%)'

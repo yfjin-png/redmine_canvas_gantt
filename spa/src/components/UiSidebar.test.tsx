@@ -266,8 +266,21 @@ describe('UiSidebar', () => {
         expect(screen.getAllByTestId('task-tree-guide-line')).not.toHaveLength(0);
         expect(screen.getAllByTestId('task-tree-current-guide')).not.toHaveLength(0);
         expect(screen.getAllByTestId('task-tree-branch-guide')).not.toHaveLength(0);
+        expect(screen.getAllByTestId('task-tree-guide-line')[0]).toHaveStyle({ left: '50%' });
+        expect(screen.getAllByTestId('task-tree-current-guide')[0]).toHaveStyle({ left: '50%' });
+        expect(screen.getAllByTestId('task-tree-branch-guide')[0]).toHaveStyle({
+            left: '50%',
+            width: '8px'
+        });
         const guideSpacer = screen.getAllByTestId('task-tree-guide-line')[0].parentElement;
         expect(guideSpacer).toHaveStyle({ width: '16px' });
+        const currentGuideSpacer = screen.getAllByTestId('task-tree-current-guide')[0].parentElement;
+        expect(currentGuideSpacer).toHaveStyle({ width: '16px' });
+        const expansionButton = currentGuideSpacer?.querySelector('button');
+        expect(expansionButton).toHaveStyle({
+            left: '50%',
+            transform: 'translate(-50%, -50%)'
+        });
 
         act(() => {
             useUIStore.setState({ showHierarchyLines: false });
@@ -279,6 +292,56 @@ describe('UiSidebar', () => {
         expect(screen.queryAllByTestId('task-tree-branch-guide')).toHaveLength(0);
         const firstGuideSpacerWhenHidden = document.querySelector('.task-subject-cell > div > div');
         expect(firstGuideSpacerWhenHidden).toHaveStyle({ width: '16px' });
+    });
+
+    it('does not draw hierarchy connector branches for root tasks', () => {
+        const columnSettings = buildColumnSettingsFromVisibleKeys(getColumnDefinitions(), ['subject']);
+        useUIStore.setState({ visibleColumns: ['subject'], columnSettings, showHierarchyLines: true });
+
+        const task: Task = {
+            id: '127',
+            subject: 'Root task',
+            startDate: 0,
+            dueDate: 1,
+            ratioDone: 0,
+            statusId: 1,
+            lockVersion: 0,
+            editable: true,
+            rowIndex: 0,
+            hasChildren: true,
+            treeLevelGuides: [],
+            isLastChild: true
+        };
+
+        useTaskStore.setState({
+            tasks: [task],
+            layoutRows: [{ type: 'task', taskId: task.id, rowIndex: 0 }],
+            rowCount: 1,
+            selectedTaskId: null,
+            taskExpansion: {},
+            projectExpansion: {},
+            viewport: {
+                startDate: 0,
+                scrollX: 0,
+                scrollY: 0,
+                scale: 1,
+                width: 800,
+                height: 600,
+                rowHeight: 32
+            }
+        });
+
+        render(<UiSidebar />);
+
+        expect(screen.queryAllByTestId('task-tree-guide-line')).toHaveLength(0);
+        expect(screen.queryAllByTestId('task-tree-current-guide')).toHaveLength(0);
+        expect(screen.queryAllByTestId('task-tree-branch-guide')).toHaveLength(0);
+        const rootGuideSpacer = screen.getByTestId('cell-127-subject').querySelector('.task-subject-cell > div > div');
+        const expansionButton = rootGuideSpacer?.querySelector('button');
+        expect(expansionButton).toHaveStyle({
+            left: '50%',
+            transform: 'translate(-50%, -50%)'
+        });
     });
 
     it('keeps task rows draggable while using pointer cursor', () => {
