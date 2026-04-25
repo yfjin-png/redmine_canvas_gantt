@@ -43,7 +43,7 @@ export function resizeCanvasForDpr(
         canvas.style.height = `${cssHeight}px`;
     }
 
-    if (ctx) {
+    if (typeof ctx?.setTransform === 'function') {
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
 }

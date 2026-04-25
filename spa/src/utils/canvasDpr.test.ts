@@ -101,6 +101,16 @@ describe('canvasDpr utility', () => {
             expect(ctx.setTransform).toHaveBeenCalledWith(2, 0, 0, 2, 0, 0);
         });
 
+        it('should tolerate partial canvas context mocks without setTransform', () => {
+            setDpr(2);
+            const canvas = document.createElement('canvas');
+            const ctx = {} as CanvasRenderingContext2D;
+
+            expect(() => resizeCanvasForDpr(canvas, ctx, 100, 50)).not.toThrow();
+            expect(canvas.width).toBe(200);
+            expect(canvas.height).toBe(100);
+        });
+
         it('should early return if width or height is <= 0', () => {
             const canvas = document.createElement('canvas');
             const ctx = {
