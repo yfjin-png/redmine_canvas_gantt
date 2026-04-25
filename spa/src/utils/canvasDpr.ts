@@ -8,8 +8,10 @@ export function getCanvasLogicalSize(canvas: HTMLCanvasElement): {
 } {
     const dpr = getCanvasDpr();
     const style = canvas.style;
-    const width = parseInt(style?.width || '0', 10) || canvas.width / dpr;
-    const height = parseInt(style?.height || '0', 10) || canvas.height / dpr;
+    const styleWidth = parseFloat(style?.width || '');
+    const styleHeight = parseFloat(style?.height || '');
+    const width = Number.isFinite(styleWidth) && styleWidth > 0 ? styleWidth : canvas.width / dpr;
+    const height = Number.isFinite(styleHeight) && styleHeight > 0 ? styleHeight : canvas.height / dpr;
 
     return {
         width: Math.max(0, width),
@@ -26,8 +28,8 @@ export function resizeCanvasForDpr(
     if (cssWidth <= 0 || cssHeight <= 0) return;
 
     const dpr = getCanvasDpr();
-    const targetBufferWidth = Math.floor(cssWidth * dpr);
-    const targetBufferHeight = Math.floor(cssHeight * dpr);
+    const targetBufferWidth = Math.ceil(cssWidth * dpr);
+    const targetBufferHeight = Math.ceil(cssHeight * dpr);
 
     if (canvas.width !== targetBufferWidth || canvas.height !== targetBufferHeight) {
         canvas.width = targetBufferWidth;

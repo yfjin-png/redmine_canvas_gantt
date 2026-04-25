@@ -63,9 +63,25 @@ describe('canvasDpr utility', () => {
             resizeCanvasForDpr(canvas, ctx, 100, 50);
 
             expect(canvas.width).toBe(125);
-            expect(canvas.height).toBe(62);
+            expect(canvas.height).toBe(63);
             expect(canvas.style.width).toBe('100px');
             expect(canvas.style.height).toBe('50px');
+            expect(ctx.setTransform).toHaveBeenCalledWith(1.25, 0, 0, 1.25, 0, 0);
+        });
+
+        it('should ceil fractional backing buffer sizes', () => {
+            setDpr(1.25);
+            const canvas = document.createElement('canvas');
+            const ctx = {
+                setTransform: vi.fn(),
+            } as unknown as CanvasRenderingContext2D;
+
+            resizeCanvasForDpr(canvas, ctx, 100.5, 50.5);
+
+            expect(canvas.width).toBe(126);
+            expect(canvas.height).toBe(64);
+            expect(canvas.style.width).toBe('100.5px');
+            expect(canvas.style.height).toBe('50.5px');
             expect(ctx.setTransform).toHaveBeenCalledWith(1.25, 0, 0, 1.25, 0, 0);
         });
 
@@ -108,6 +124,17 @@ describe('canvasDpr utility', () => {
             canvas.style.height = '75px';
 
             expect(getCanvasLogicalSize(canvas)).toEqual({ width: 150, height: 75 });
+        });
+
+        it('should preserve fractional canvas style sizes', () => {
+            setDpr(2);
+            const canvas = document.createElement('canvas');
+            canvas.width = 400;
+            canvas.height = 200;
+            canvas.style.width = '100.5px';
+            canvas.style.height = '75.25px';
+
+            expect(getCanvasLogicalSize(canvas)).toEqual({ width: 100.5, height: 75.25 });
         });
 
         it('should fall back to backing buffer size divided by dpr', () => {
