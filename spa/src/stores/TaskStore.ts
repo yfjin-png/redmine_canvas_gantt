@@ -17,7 +17,7 @@ import { computeCenteredViewport } from './taskStore/viewport';
 import { buildMoveTaskResult, saveModifiedTasks } from './taskStore/taskPersistence';
 import { runParentMove } from './taskStore/parentMove';
 import { buildUniformExpansionMaps, initializeExpansionMaps } from './taskStore/expansion';
-import { syncSharedQueryState } from './taskStore/querySync';
+import { syncSharedQueryState, type SharedQuerySyncState } from './taskStore/querySync';
 import type { SchedulingStateInfo } from '../scheduling/constraintGraph';
 import type { CriticalPathTaskMetrics } from '../scheduling/criticalPath';
 import { AutoScheduleMoveMode } from '../types/constraints';
@@ -285,7 +285,12 @@ const toDerivedTaskStatePatch = (derived: DerivedTaskState): DerivedTaskStatePat
     criticalPathProjectFinish: derived.criticalPathProjectFinish
 });
 
-const buildApiDataPatch = (data: ApiData, state: TaskState): Partial<TaskState> => {
+type ApiDataPatchResult = {
+    patch: Partial<TaskState>;
+    querySyncState: SharedQuerySyncState;
+};
+
+const buildApiDataPatch = (data: ApiData, state: TaskState): ApiDataPatchResult => {
     const filterOptions = data.filterOptions ?? EMPTY_FILTER_OPTIONS;
     const customFields = data.customFields ?? [];
     const versions = data.versions ?? [];
@@ -340,26 +345,27 @@ const buildApiDataPatch = (data: ApiData, state: TaskState): Partial<TaskState> 
         showSubprojects: queryState.showSubprojects
     };
 
-    syncSharedQueryState(querySyncState);
-
     return {
-        ...querySyncState,
-        allTasks: tasks,
-        relations,
-        versions,
-        filterOptions,
-        customFields,
-        taskStatuses: data.statuses ?? [],
-        permissions: data.permissions ?? DEFAULT_PERMISSIONS,
-        selectedRelationId: state.selectedRelationId && relations.some(relation => relation.id === state.selectedRelationId)
-            ? state.selectedRelationId
-            : null,
-        draftRelation: null,
-        projectExpansion,
-        versionExpansion,
-        taskExpansion,
-        modifiedTaskIds: new Set<string>(),
-        ...toDerivedTaskStatePatch(derived)
+        querySyncState,
+        patch: {
+            ...querySyncState,
+            allTasks: tasks,
+            relations,
+            versions,
+            filterOptions,
+            customFields,
+            taskStatuses: data.statuses ?? [],
+            permissions: data.permissions ?? DEFAULT_PERMISSIONS,
+            selectedRelationId: state.selectedRelationId && relations.some(relation => relation.id === state.selectedRelationId)
+                ? state.selectedRelationId
+                : null,
+            draftRelation: null,
+            projectExpansion,
+            versionExpansion,
+            taskExpansion,
+            modifiedTaskIds: new Set<string>(),
+            ...toDerivedTaskStatePatch(derived)
+        }
     };
 };
 
@@ -628,7 +634,15 @@ export const useTaskStore = create<TaskState>((set, get) => ({
         return nextState;
     }),
     applyApiData: (data) => {
-        set((state) => buildApiDataPatch(data, state));
+        let querySyncState: SharedQuerySyncState | null = null;
+        set((state) => {
+            const result = buildApiDataPatch(data, state);
+            querySyncState = result.querySyncState;
+            return result.patch;
+        });
+        if (querySyncState) {
+            syncSharedQueryState(querySyncState);
+        }
         useBaselineStore.getState().setSnapshot(data.baseline ?? null, data.warnings ?? []);
         (data.warnings ?? []).forEach((warning) => {
             useUIStore.getState().addNotification(warning, 'warning');
