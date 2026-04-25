@@ -118,6 +118,7 @@ export const UiSidebar: React.FC = () => {
     const criticalPathMetrics = useTaskStore(state => state.criticalPathMetrics);
     const layoutRows = useTaskStore(state => state.layoutRows);
     const rowCount = useTaskStore(state => state.rowCount);
+    const taskStatuses = useTaskStore(state => state.taskStatuses);
     const viewport = useTaskStore(state => state.viewport);
     const updateViewport = useTaskStore(state => state.updateViewport);
     const selectTask = useTaskStore(state => state.selectTask);
@@ -161,6 +162,7 @@ export const UiSidebar: React.FC = () => {
     const sidebarRowBorder = `1px solid ${designTokens.controlBorder}`;
     const sidebarMutedText = designTokens.textMuted;
     const sidebarSecondaryText = designTokens.textSecondary;
+    const sidebarClosedText = designTokens.textMuted;
     const sidebarPlaceholderText = designTokens.disabledFg;
     const sidebarLoadingText = designTokens.controlLoadingFg;
     const sidebarSelectedRowBg = designTokens.sidebarSelectedRowBg;
@@ -219,6 +221,12 @@ export const UiSidebar: React.FC = () => {
 
     const [startRow, endRow] = LayoutEngine.getVisibleRowRange(viewport, rowCount || tasks.length);
     const visibleRows = layoutRows.filter(row => row.rowIndex >= startRow && row.rowIndex <= endRow);
+
+    const closedStatusIds = React.useMemo(
+        () => new Set(taskStatuses.filter(status => status.isClosed).map(status => status.id)),
+        [taskStatuses]
+    );
+    const isTaskClosed = React.useCallback((task: Task) => closedStatusIds.has(task.statusId), [closedStatusIds]);
 
     const renderFallbackCellValue = React.useCallback((task: Task, key: string) => {
         const value = (task as unknown as Record<string, unknown>)[key];
@@ -312,6 +320,7 @@ export const UiSidebar: React.FC = () => {
                 >
                     {(() => {
                         const isSelected = t.id === selectedTaskId;
+                        const isClosed = isTaskClosed(t);
                         const hasParentGuide = (t.treeLevelGuides ?? []).length > 0;
                         const branchGuideWidth = currentTreeGuideWidth / 2;
                         return (
@@ -413,8 +422,8 @@ export const UiSidebar: React.FC = () => {
                                         alignItems: 'center',
                                         overflow: 'hidden',
                                         textOverflow: 'ellipsis',
-                                        color: isSelected ? designTokens.controlActiveFg : sidebarSecondaryText,
-                                        textDecoration: 'none',
+                                        color: isSelected ? designTokens.controlActiveFg : (isClosed ? sidebarClosedText : sidebarSecondaryText),
+                                        textDecoration: isClosed ? 'line-through' : 'none',
                                         whiteSpace: 'nowrap',
                                         background: 'none',
                                         border: 'none',
@@ -464,9 +473,10 @@ export const UiSidebar: React.FC = () => {
             title: tr('field_status'),
             width: columnWidths['status'] ?? 100,
             render: (t: Task) => {
-                const style = getStatusColor(t.statusId);
+                const isClosed = isTaskClosed(t);
+                const style = getStatusColor(t.statusId, isClosed);
                 return renderEditableCell(t, 'statusId', (
-                    <span style={{
+                    <span data-testid={`task-status-badge-${t.id}`} style={{
                         backgroundColor: style.bg,
                         color: style.text,
                         padding: '2px 8px',
@@ -921,6 +931,7 @@ export const UiSidebar: React.FC = () => {
                         if (!task) return null;
                         const isSelected = task.id === selectedTaskId;
                         const isDropTarget = dropTargetTaskId === task.id;
+                        const isClosed = isTaskClosed(task);
                         const meta = editMetaByTaskId[task.id];
 
                         return (
@@ -951,7 +962,7 @@ export const UiSidebar: React.FC = () => {
                                     boxShadow: isDropTarget ? `inset 0 0 0 1px ${sidebarDropTargetBorder}` : 'none',
                                     cursor: 'pointer',
                                     fontSize: `${sidebarFontSize}px`,
-                                    color: sidebarSecondaryText,
+                                    color: isClosed ? sidebarClosedText : sidebarSecondaryText,
                                     transition: 'background-color 0.2s, color 0.2s'
                                 }}
                                 className={`task-row ${isSelected ? 'is-selected' : ''}`}

@@ -224,6 +224,74 @@ describe('UiSidebar', () => {
         expect(screen.queryByTestId('sidebar-column-resize-handle-subject')).not.toBeInTheDocument();
     });
 
+    it('keeps closed task row background unchanged, mutes text, strikes only the subject, and renders a closed badge', () => {
+        const columnSettings = buildColumnSettingsFromVisibleKeys(getColumnDefinitions(), ['id', 'subject', 'status']);
+        useUIStore.setState({ visibleColumns: ['id', 'subject', 'status'], columnSettings });
+
+        useTaskStore.setState({
+            viewport: {
+                startDate: 0,
+                scrollX: 0,
+                scrollY: 0,
+                scale: 1,
+                width: 800,
+                height: 600,
+                rowHeight: 32
+            },
+            groupByProject: false,
+            taskStatuses: [
+                { id: 1, name: 'New', isClosed: false },
+                { id: 9, name: 'Closed', isClosed: true }
+            ]
+        });
+
+        const openTask: Task = {
+            id: '128',
+            subject: 'Open task',
+            startDate: 0,
+            dueDate: 1,
+            ratioDone: 0,
+            statusId: 1,
+            lockVersion: 0,
+            editable: true,
+            rowIndex: 0,
+            hasChildren: false
+        };
+        const closedTask: Task = {
+            id: '129',
+            subject: 'Closed task',
+            startDate: 0,
+            dueDate: 1,
+            ratioDone: 100,
+            statusId: 9,
+            lockVersion: 0,
+            editable: true,
+            rowIndex: 1,
+            hasChildren: false
+        };
+
+        useTaskStore.getState().setTasks([openTask, closedTask]);
+
+        render(<UiSidebar />);
+
+        expect(screen.getByText('Open task')).toHaveStyle({ textDecoration: 'none' });
+
+        expect(screen.getByTestId('task-row-129')).not.toHaveStyle({ backgroundColor: '#f5f5f5' });
+        expect(screen.getByTestId('task-row-129')).toHaveStyle({ color: '#6b7280' });
+        expect(screen.getByText('Closed task')).toHaveStyle({
+            color: '#6b7280',
+            textDecoration: 'line-through'
+        });
+        expect(screen.getByTestId('task-id-129')).not.toHaveStyle({ textDecoration: 'line-through' });
+
+        const closedBadge = screen.getByTestId('task-status-badge-129');
+        expect(closedBadge).toHaveTextContent('Closed');
+        expect(closedBadge).toHaveStyle({
+            backgroundColor: '#e8f5e9',
+            color: '#2e7d32'
+        });
+    });
+
     it('hides hierarchy guide lines when the toggle is off', () => {
         const columnSettings = buildColumnSettingsFromVisibleKeys(getColumnDefinitions(), ['subject']);
         useUIStore.setState({ visibleColumns: ['subject'], columnSettings, showHierarchyLines: true });
