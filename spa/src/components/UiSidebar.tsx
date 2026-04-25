@@ -153,6 +153,7 @@ export const UiSidebar: React.FC = () => {
     const sidebarPaddingX = 8;
     const sidebarGapSm = 4;
     const sidebarGapMd = 6;
+    const trackerIconSize = 14;
     const sidebarControlSize = 20;
     const sidebarButtonSize = 24;
     const sidebarHeaderHeight = 48;
@@ -322,53 +323,79 @@ export const UiSidebar: React.FC = () => {
                         const isSelected = t.id === selectedTaskId;
                         const isClosed = isTaskClosed(t);
                         const hasParentGuide = (t.treeLevelGuides ?? []).length > 0;
-                        const branchGuideWidth = currentTreeGuideWidth; // Use full width (16px) to reach the icon margin (8+16+8=32)
+                        const level = (t.treeLevelGuides ?? []).length;
+                        const trackerIconCenterOffset = sidebarPaddingX + currentTreeGuideWidth + sidebarGapMd + sidebarPaddingX + trackerIconSize / 2;
+                        const getTreeColumnX = (l: number) => trackerIconCenterOffset + l * treeGuideWidth;
+                        const currentGuideStartX = sidebarPaddingX + level * treeGuideWidth;
+                        const expansionButtonLeft = getTreeColumnX(level) - currentGuideStartX;
+
                         return (
                             <>
-                                {/* Tree Lines */}
-                                <div style={{ display: 'flex', height: '100%', flexShrink: 0, paddingLeft: sidebarPaddingX }}>
-                                    {(t.treeLevelGuides ?? []).map((hasLine, i) => (
-                                        <div key={i} style={{ width: treeGuideWidth, height: '100%', position: 'relative' }}>
-                                            {showHierarchyLines && hasLine && (
-                                                <div style={{
-                                                    position: 'absolute',
-                                                    left: '50%',
-                                                    top: 0,
-                                                    bottom: 0,
-                                                    width: 1,
-                                                    backgroundColor: designTokens.controlBorder,
-                                                    transform: 'translateX(-50%)'
-                                                }} data-testid="task-tree-guide-line" />
-                                            )}
-                                        </div>
-                                    ))}
-                                    <div style={{ width: currentTreeGuideWidth, height: '100%', position: 'relative' }}>
-                                        {/* Vertical line for the current node */}
-                                        {showHierarchyLines && hasParentGuide && (
-                                            <div style={{
+                                {/* Tree Lines Overlay */}
+                                <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, pointerEvents: 'none', zIndex: 1 }}>
+                                    {/* Ancestor Vertical Lines */}
+                                    {showHierarchyLines && (t.treeLevelGuides ?? []).map((hasLine, i) => {
+                                        if (!hasLine || i === level - 1) return null;
+                                        return (
+                                            <div key={i} style={{
                                                 position: 'absolute',
-                                                left: '50%',
-                                                top: 0,
-                                                bottom: t.isLastChild ? '50%' : 0,
+                                                left: getTreeColumnX(i),
+                                                top: -1,
+                                                bottom: 0,
                                                 width: 1,
                                                 backgroundColor: designTokens.controlBorder,
                                                 transform: 'translateX(-50%)'
-                                            }} data-testid="task-tree-current-guide" />
-                                        )}
-                                        {/* Horizontal line for the current node */}
-                                        {showHierarchyLines && hasParentGuide && (
-                                            <div style={{
-                                                position: 'absolute',
-                                                left: '50%',
-                                                top: '50%',
-                                                width: branchGuideWidth,
-                                                height: 1,
-                                                backgroundColor: designTokens.controlBorder,
-                                                transform: 'translateY(-50%)'
-                                            }} data-testid="task-tree-branch-guide" />
-                                        )}
+                                            }} data-testid="task-tree-guide-line" />
+                                        );
+                                    })}
 
-                                        {/* Expansion Trigger (Chevron) overlaying on the line branch */}
+                                    {/* Parent connector line */}
+                                    {showHierarchyLines && hasParentGuide && (
+                                        <div style={{
+                                            position: 'absolute',
+                                            left: getTreeColumnX(level - 1),
+                                            top: -1,
+                                            bottom: t.isLastChild ? '50%' : 0,
+                                            width: 1,
+                                            backgroundColor: designTokens.controlBorder,
+                                            transform: 'translateX(-50%)'
+                                        }} data-testid="task-tree-parent-guide" />
+                                    )}
+
+                                    {/* Current Task Vertical Line (if expanded) */}
+                                    {showHierarchyLines && (t.hasChildren && (taskExpansion[t.id] ?? true)) && (
+                                        <div style={{
+                                            position: 'absolute',
+                                            left: getTreeColumnX(level),
+                                            top: '50%',
+                                            bottom: -1,
+                                            width: 1,
+                                            backgroundColor: designTokens.controlBorder,
+                                            transform: 'translateX(-50%)'
+                                        }} data-testid="task-tree-current-guide" />
+                                    )}
+
+                                    {/* Horizontal Branch Line connecting to parent */}
+                                    {showHierarchyLines && hasParentGuide && (
+                                        <div style={{
+                                            position: 'absolute',
+                                            left: getTreeColumnX(level - 1),
+                                            width: treeGuideWidth,
+                                            top: '50%',
+                                            height: 1,
+                                            backgroundColor: designTokens.controlBorder,
+                                            transform: 'translateY(-50%)'
+                                        }} data-testid="task-tree-branch-guide" />
+                                    )}
+                                </div>
+
+                                {/* Tree Guide Area (Expansion Buttons) */}
+                                <div style={{ display: 'flex', height: '100%', flexShrink: 0, paddingLeft: sidebarPaddingX }}>
+                                    {(t.treeLevelGuides ?? []).map((_, i) => (
+                                        <div key={i} style={{ width: treeGuideWidth, height: '100%', position: 'relative' }} />
+                                    ))}
+                                    <div style={{ width: currentTreeGuideWidth, height: '100%', position: 'relative' }}>
+                                        {/* Expansion Trigger (Chevron) - Maintained at the center of the guide div */}
                                         {t.hasChildren && (
                                             <button
                                                 type="button"
@@ -380,7 +407,7 @@ export const UiSidebar: React.FC = () => {
                                                 }}
                                                 style={{
                                                     position: 'absolute',
-                                                    left: '50%',
+                                                    left: expansionButtonLeft,
                                                     top: '50%',
                                                     transform: 'translate(-50%, -50%)',
                                                     width: 20,
@@ -393,7 +420,7 @@ export const UiSidebar: React.FC = () => {
                                                     background: isSelected ? designTokens.sidebarSelectedRowBg : designTokens.controlBg,
                                                     cursor: 'pointer',
                                                     flexShrink: 0,
-                                                    zIndex: 1,
+                                                    zIndex: 3,
                                                     padding: 0
                                                 }}
                                             >
@@ -403,7 +430,15 @@ export const UiSidebar: React.FC = () => {
                                     </div>
                                 </div>
 
-                                <div style={{ marginLeft: sidebarPaddingX, display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+                                <div style={{
+                                    marginLeft: sidebarPaddingX,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    flexShrink: 0,
+                                    zIndex: 2,
+                                    position: 'relative',
+                                    backgroundColor: isSelected ? designTokens.sidebarSelectedRowBg : designTokens.controlBg
+                                }}>
                                     <TrackerIcon kind={resolveTrackerIconKind(t.trackerId, t.trackerName, trackerIconMap)} />
                                 </div>
                                 <a
