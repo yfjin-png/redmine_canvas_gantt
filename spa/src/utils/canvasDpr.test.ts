@@ -16,7 +16,7 @@ describe('canvasDpr utility', () => {
         });
     });
 
-    const setDpr = (value: number) => {
+    const setDpr = (value: number | undefined) => {
         Object.defineProperty(window, 'devicePixelRatio', {
             value,
             writable: true,
@@ -31,7 +31,7 @@ describe('canvasDpr utility', () => {
         });
 
         it('should return 1 if window.devicePixelRatio is not defined', () => {
-            setDpr(undefined as any);
+            setDpr(undefined);
             expect(getCanvasDpr()).toBe(1);
         });
     });
@@ -157,7 +157,7 @@ describe('canvasDpr utility', () => {
         });
 
         it('should fall back to dpr 1 when devicePixelRatio is not defined', () => {
-            setDpr(undefined as any);
+            setDpr(undefined);
             const canvas = document.createElement('canvas');
             canvas.width = 320;
             canvas.height = 120;
