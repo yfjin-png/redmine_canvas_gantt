@@ -266,13 +266,19 @@ describe('UiSidebar', () => {
         expect(screen.getAllByTestId('task-tree-guide-line')).not.toHaveLength(0);
         expect(screen.getAllByTestId('task-tree-current-guide')).not.toHaveLength(0);
         expect(screen.getAllByTestId('task-tree-branch-guide')).not.toHaveLength(0);
+        const guideSpacer = screen.getAllByTestId('task-tree-guide-line')[0].parentElement;
+        expect(guideSpacer).toHaveStyle({ width: '16px' });
 
-        useUIStore.setState({ showHierarchyLines: false });
+        act(() => {
+            useUIStore.setState({ showHierarchyLines: false });
+        });
         rerender(<UiSidebar />);
 
         expect(screen.queryAllByTestId('task-tree-guide-line')).toHaveLength(0);
         expect(screen.queryAllByTestId('task-tree-current-guide')).toHaveLength(0);
         expect(screen.queryAllByTestId('task-tree-branch-guide')).toHaveLength(0);
+        const firstGuideSpacerWhenHidden = document.querySelector('.task-subject-cell > div > div');
+        expect(firstGuideSpacerWhenHidden).toHaveStyle({ width: '16px' });
     });
 
     it('keeps task rows draggable while using pointer cursor', () => {

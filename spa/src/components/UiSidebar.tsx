@@ -147,7 +147,7 @@ export const UiSidebar: React.FC = () => {
 
     const editMetaByTaskId = useEditMetaStore((s) => s.metaByTaskId);
     const fetchEditMeta = useEditMetaStore((s) => s.fetchEditMeta);
-    const treeGuideWidth = showHierarchyLines ? 16 : 8;
+    const treeGuideWidth = 18;
     const sidebarPaddingX = 8;
     const sidebarGapSm = 4;
     const sidebarGapMd = 6;
