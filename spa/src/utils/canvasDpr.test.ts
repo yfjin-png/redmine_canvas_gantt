@@ -1,0 +1,185 @@
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { getCanvasDpr, getCanvasLogicalSize, resizeCanvasForDpr, snapTextPosition, snapLinePosition } from './canvasDpr';
+
+describe('canvasDpr utility', () => {
+    let originalDevicePixelRatio: number;
+
+    beforeEach(() => {
+        originalDevicePixelRatio = window.devicePixelRatio;
+    });
+
+    afterEach(() => {
+        Object.defineProperty(window, 'devicePixelRatio', {
+            value: originalDevicePixelRatio,
+            writable: true,
+            configurable: true,
+        });
+    });
+
+    const setDpr = (value: number | undefined) => {
+        Object.defineProperty(window, 'devicePixelRatio', {
+            value,
+            writable: true,
+            configurable: true,
+        });
+    };
+
+    describe('getCanvasDpr', () => {
+        it('should return window.devicePixelRatio if it is defined', () => {
+            setDpr(2);
+            expect(getCanvasDpr()).toBe(2);
+        });
+
+        it('should return 1 if window.devicePixelRatio is not defined', () => {
+            setDpr(undefined);
+            expect(getCanvasDpr()).toBe(1);
+        });
+    });
+
+    describe('resizeCanvasForDpr', () => {
+        it('should properly size the canvas and set transform for dpr = 2', () => {
+            setDpr(2);
+            const canvas = document.createElement('canvas');
+            const ctx = {
+                setTransform: vi.fn(),
+            } as unknown as CanvasRenderingContext2D;
+
+            resizeCanvasForDpr(canvas, ctx, 100, 50);
+
+            expect(canvas.width).toBe(200);
+            expect(canvas.height).toBe(100);
+            expect(canvas.style.width).toBe('100px');
+            expect(canvas.style.height).toBe('50px');
+            expect(ctx.setTransform).toHaveBeenCalledWith(2, 0, 0, 2, 0, 0);
+        });
+
+        it('should properly size the canvas and set transform for fractional dpr', () => {
+            setDpr(1.25);
+            const canvas = document.createElement('canvas');
+            const ctx = {
+                setTransform: vi.fn(),
+            } as unknown as CanvasRenderingContext2D;
+
+            resizeCanvasForDpr(canvas, ctx, 100, 50);
+
+            expect(canvas.width).toBe(125);
+            expect(canvas.height).toBe(63);
+            expect(canvas.style.width).toBe('100px');
+            expect(canvas.style.height).toBe('50px');
+            expect(ctx.setTransform).toHaveBeenCalledWith(1.25, 0, 0, 1.25, 0, 0);
+        });
+
+        it('should ceil fractional backing buffer sizes', () => {
+            setDpr(1.25);
+            const canvas = document.createElement('canvas');
+            const ctx = {
+                setTransform: vi.fn(),
+            } as unknown as CanvasRenderingContext2D;
+
+            resizeCanvasForDpr(canvas, ctx, 100.5, 50.5);
+
+            expect(canvas.width).toBe(126);
+            expect(canvas.height).toBe(64);
+            expect(canvas.style.width).toBe('100.5px');
+            expect(canvas.style.height).toBe('50.5px');
+            expect(ctx.setTransform).toHaveBeenCalledWith(1.25, 0, 0, 1.25, 0, 0);
+        });
+
+        it('should setTransform even if canvas buffer size is already correct', () => {
+            setDpr(2);
+            const canvas = document.createElement('canvas');
+            canvas.width = 200;
+            canvas.height = 100;
+            const ctx = {
+                setTransform: vi.fn(),
+            } as unknown as CanvasRenderingContext2D;
+
+            resizeCanvasForDpr(canvas, ctx, 100, 50);
+
+            expect(canvas.width).toBe(200);
+            expect(canvas.height).toBe(100);
+            expect(ctx.setTransform).toHaveBeenCalledWith(2, 0, 0, 2, 0, 0);
+        });
+
+        it('should tolerate partial canvas context mocks without setTransform', () => {
+            setDpr(2);
+            const canvas = document.createElement('canvas');
+            const ctx = {} as CanvasRenderingContext2D;
+
+            expect(() => resizeCanvasForDpr(canvas, ctx, 100, 50)).not.toThrow();
+            expect(canvas.width).toBe(200);
+            expect(canvas.height).toBe(100);
+        });
+
+        it('should early return if width or height is <= 0', () => {
+            const canvas = document.createElement('canvas');
+            const ctx = {
+                setTransform: vi.fn(),
+            } as unknown as CanvasRenderingContext2D;
+
+            resizeCanvasForDpr(canvas, ctx, 0, 50);
+            expect(canvas.width).toBe(300); // default canvas width
+            expect(ctx.setTransform).not.toHaveBeenCalled();
+        });
+    });
+
+
+    describe('getCanvasLogicalSize', () => {
+        it('should prefer canvas style size when available', () => {
+            setDpr(2);
+            const canvas = document.createElement('canvas');
+            canvas.width = 400;
+            canvas.height = 200;
+            canvas.style.width = '150px';
+            canvas.style.height = '75px';
+
+            expect(getCanvasLogicalSize(canvas)).toEqual({ width: 150, height: 75 });
+        });
+
+        it('should preserve fractional canvas style sizes', () => {
+            setDpr(2);
+            const canvas = document.createElement('canvas');
+            canvas.width = 400;
+            canvas.height = 200;
+            canvas.style.width = '100.5px';
+            canvas.style.height = '75.25px';
+
+            expect(getCanvasLogicalSize(canvas)).toEqual({ width: 100.5, height: 75.25 });
+        });
+
+        it('should fall back to backing buffer size divided by dpr', () => {
+            setDpr(2);
+            const canvas = document.createElement('canvas');
+            canvas.width = 400;
+            canvas.height = 200;
+
+            expect(getCanvasLogicalSize(canvas)).toEqual({ width: 200, height: 100 });
+        });
+
+        it('should fall back to dpr 1 when devicePixelRatio is not defined', () => {
+            setDpr(undefined);
+            const canvas = document.createElement('canvas');
+            canvas.width = 320;
+            canvas.height = 120;
+
+            expect(getCanvasLogicalSize(canvas)).toEqual({ width: 320, height: 120 });
+        });
+    });
+
+    describe('snapTextPosition', () => {
+        it('should round to nearest integer', () => {
+            expect(snapTextPosition(1.2)).toBe(1);
+            expect(snapTextPosition(1.5)).toBe(2);
+            expect(snapTextPosition(1.8)).toBe(2);
+        });
+    });
+
+    describe('snapLinePosition', () => {
+        it('should floor and add 0.5', () => {
+            expect(snapLinePosition(1.2)).toBe(1.5);
+            expect(snapLinePosition(1.5)).toBe(1.5);
+            expect(snapLinePosition(1.8)).toBe(1.5);
+            expect(snapLinePosition(2)).toBe(2.5);
+        });
+    });
+});
