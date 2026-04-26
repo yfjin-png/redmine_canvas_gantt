@@ -29,7 +29,9 @@ export const DEFAULT_COLUMN_KEYS = [
     'updatedOn'
 ] as const;
 
-export const DEFAULT_VISIBLE_COLUMN_KEYS = new Set(['id', 'notification', 'status', 'assignee', 'startDate', 'dueDate', 'ratioDone']);
+export const DEFAULT_VISIBLE_COLUMN_KEY_LIST = ['id', 'subject', 'notification', 'status', 'assignee', 'startDate', 'dueDate', 'ratioDone'];
+
+export const DEFAULT_VISIBLE_COLUMN_KEYS = new Set(DEFAULT_VISIBLE_COLUMN_KEY_LIST);
 
 export const buildColumnSettingsFromVisibleKeys = (
     definitions: SidebarColumnDefinition[],
@@ -119,7 +121,7 @@ export const toggleColumnSetting = (settings: ColumnConfig[], key: string): Colu
         : [...settings, { key, visible: true }];
 
 export const resetColumnSettings = (definitions: SidebarColumnDefinition[]) =>
-    buildColumnSettingsFromVisibleKeys(definitions, ['id', 'subject', 'notification', 'status', 'assignee', 'startDate', 'dueDate', 'ratioDone']);
+    buildColumnSettingsFromVisibleKeys(definitions, DEFAULT_VISIBLE_COLUMN_KEY_LIST);
 
 export const mergeColumnSettings = (
     baseSettings: ColumnConfig[],

@@ -176,4 +176,36 @@ describe('UIStore', () => {
         expect(freshUIStore.getState().showTaskTitles).toBe(false);
         expect(freshUIStore.getState().sidebarWidth).toBe(420);
     });
+
+    it('normalizes legacy display column preferences from columnSettings', async () => {
+        window.localStorage.setItem('canvasGantt:preferences', JSON.stringify({
+            version: 4,
+            general: {},
+            display: {
+                projects: {
+                    'project:1': {
+                        visibleColumns: ['id', 'notification', 'status', 'assignee', 'startDate', 'dueDate', 'ratioDone'],
+                        columnSettings: buildColumnSettingsFromVisibleKeys(getColumnDefinitions(), [
+                            'id',
+                            'subject',
+                            'notification',
+                            'status',
+                            'assignee',
+                            'startDate',
+                            'dueDate',
+                            'ratioDone'
+                        ])
+                    }
+                }
+            }
+        }));
+
+        vi.resetModules();
+        const { useUIStore: freshUIStore } = await import('./UIStore');
+
+        expect(freshUIStore.getState().visibleColumns).toContain('subject');
+        expect(freshUIStore.getState().visibleColumns).toEqual(
+            freshUIStore.getState().columnSettings.filter((column) => column.visible).map((column) => column.key)
+        );
+    });
 });
