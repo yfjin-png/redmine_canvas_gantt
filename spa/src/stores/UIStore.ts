@@ -1,9 +1,10 @@
 import { create } from 'zustand';
 import { AutoScheduleMoveMode, RelationType, type AutoScheduleMoveMode as AutoScheduleMoveModeValue, type DefaultRelationType } from '../types/constraints';
-import { loadDisplayPreferencesWithSource, loadPreferences, type DisplayPreferencesSource } from '../utils/preferences';
+import { loadDisplayPreferencesWithSource, loadPreferences, type DisplayPreferencesSource, type StoredDisplayPreferences } from '../utils/preferences';
 import { buildRedmineUrl } from '../utils/redmineUrl';
 import {
     buildColumnSettingsFromVisibleKeys,
+    DEFAULT_VISIBLE_COLUMN_KEY_LIST,
     moveColumnSetting,
     normalizeColumnSettings,
     resetColumnSettings,
@@ -12,7 +13,7 @@ import {
 } from '../components/sidebar/sidebarColumnSettings';
 import { getColumnDefinitions, getDefaultVisibleColumnKeys } from '../components/sidebar/sidebarColumnCatalog';
 
-export const DEFAULT_COLUMNS = ['id', 'subject', 'notification', 'status', 'assignee', 'startDate', 'dueDate', 'ratioDone'];
+export const DEFAULT_COLUMNS = [...DEFAULT_VISIBLE_COLUMN_KEY_LIST];
 
 const COLUMN_DEFINITIONS = getColumnDefinitions();
 const generalPreferences = loadPreferences();
@@ -93,9 +94,32 @@ const defaultColumnSettings = buildColumnSettingsFromVisibleKeys(COLUMN_DEFINITI
 export const DEFAULT_COLUMN_SETTINGS = defaultColumnSettings;
 
 const toVisibleColumns = (columnSettings: ColumnConfig[]) => columnSettings.filter((entry) => entry.visible).map((entry) => entry.key);
+const normalizeDisplayColumns = (preferences: Pick<StoredDisplayPreferences, 'visibleColumns' | 'columnSettings'>) => {
+    if (preferences.columnSettings) {
+        const normalizedSettings = normalizeColumnSettings(COLUMN_DEFINITIONS, preferences.columnSettings);
+        const explicitSettingKeys = new Set(preferences.columnSettings.map((entry) => entry.key));
+        const visibleColumnKeys = new Set(preferences.visibleColumns ?? []);
+        const columnSettings = preferences.visibleColumns
+            ? normalizedSettings.map((entry) => ({
+                ...entry,
+                visible: explicitSettingKeys.has(entry.key) ? entry.visible : visibleColumnKeys.has(entry.key)
+            }))
+            : normalizedSettings;
+        return { columnSettings, visibleColumns: toVisibleColumns(columnSettings) };
+    }
+
+    const visibleColumns = preferences.visibleColumns ?? DEFAULT_COLUMNS;
+    return {
+        visibleColumns,
+        columnSettings: preferences.visibleColumns
+            ? normalizeColumnSettings(COLUMN_DEFINITIONS, preferences.visibleColumns)
+            : defaultColumnSettings
+    };
+};
 const loadedDisplayPreferences = loadDisplayPreferencesWithSource();
 const displayPreferences = loadedDisplayPreferences.preferences;
 const displayPreferencesSource: DisplayPreferencesSource = loadedDisplayPreferences.source;
+const initialDisplayColumns = normalizeDisplayColumns(displayPreferences);
 
 export const useUIStore = create<UIState>((set, get) => ({
     notifications: [],
@@ -106,10 +130,8 @@ export const useUIStore = create<UIState>((set, get) => ({
     showPointsOrphans: displayPreferences.showPointsOrphans ?? true,
     leftPaneVisible: true,
     rightPaneVisible: true,
-    visibleColumns: displayPreferences.visibleColumns ?? DEFAULT_COLUMNS,
-    columnSettings: displayPreferences.columnSettings
-        ? normalizeColumnSettings(COLUMN_DEFINITIONS, displayPreferences.columnSettings)
-        : defaultColumnSettings,
+    visibleColumns: initialDisplayColumns.visibleColumns,
+    columnSettings: initialDisplayColumns.columnSettings,
     columnWidths: displayPreferences.columnWidths ?? {
         id: 72,
         notification: 44,
