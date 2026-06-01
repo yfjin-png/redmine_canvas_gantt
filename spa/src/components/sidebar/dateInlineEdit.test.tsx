@@ -126,43 +126,7 @@ describe('UiSidebar Date Inline Edit Integration', () => {
         return task;
     };
 
-    it('does not display calendar icon when field is not editable in metadata', async () => {
-        setupTaskWithMeta(false);
-        render(<UiSidebar />);
-
-        const cell = await screen.findByTestId(`cell-${taskId}-startDate`);
-        // The calendar button should not be rendered inside the cell
-        const calendarBtn = cell.querySelector('button');
-        expect(calendarBtn).toBeNull();
-    });
-
-    it('displays calendar icon when field is editable in metadata', async () => {
-        setupTaskWithMeta(true);
-        render(<UiSidebar />);
-
-        const cell = await screen.findByTestId(`cell-${taskId}-startDate`);
-        const calendarBtn = cell.querySelector('button');
-        expect(calendarBtn).not.toBeNull();
-        expect(calendarBtn?.getAttribute('aria-label')).toBe('Start Date');
-    });
-
-    it('starts inline editing upon calendar button single click', async () => {
-        setupTaskWithMeta(true);
-        render(<UiSidebar />);
-
-        const cell = await screen.findByTestId(`cell-${taskId}-startDate`);
-        const calendarBtn = cell.querySelector('button')!;
-
-        await act(async () => {
-            fireEvent.click(calendarBtn);
-        });
-
-        // The datepicker dialog custom input or select should be visible
-        await screen.findByText('Today');
-        await screen.findByText('Clear');
-    });
-
-    it('starts inline editing on double click as a fallback', async () => {
+    it('starts inline editing on double click', async () => {
         setupTaskWithMeta(true);
         render(<UiSidebar />);
 

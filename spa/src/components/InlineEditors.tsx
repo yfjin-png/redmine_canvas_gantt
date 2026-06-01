@@ -437,6 +437,7 @@ export const DueDateEditor: React.FC<{
             onMouseDown={(e) => e.stopPropagation()}
         >
             <DatePicker
+                wrapperClassName="react-datepicker-wrapper-w-full"
                 selected={startDate}
                 onChange={(date: Date | null) => {
                     if (!date) {
